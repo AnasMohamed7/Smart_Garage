@@ -378,6 +378,10 @@ double2int
 double2longint
 double2longword
 double2word
+echo
+echo_direction
+echo2
+echo2_direction
 eeadr
 eeadrh
 eecon1
@@ -433,6 +437,8 @@ fullbits
 gcen
 gcen_bit
 get_fosc_khz
+getdistance1
+getdistance2
 gie
 gie_bit
 glcd_box
@@ -883,6 +889,9 @@ s1d13700_write_text_return_pos
 sdiv3232l
 sen
 sen_bit
+servo
+servo_direction
+servo_setangle
 setfdz32
 setfov32
 setfun32
@@ -1192,6 +1201,8 @@ tan
 tanh
 test_keypad
 test_lcd
+test_servo
+test_ultrasonic
 time_datetoepoch
 time_epochtodate
 time_jd1970
@@ -1235,6 +1246,10 @@ tp_init
 tp_press_detect
 tp_set_adc_threshold
 tp_set_calibration_consts
+trig
+trig_direction
+trig2
+trig2_direction
 trisa
 trisa0
 trisa0_bit
