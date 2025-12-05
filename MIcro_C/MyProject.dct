@@ -551,6 +551,10 @@ lcd_rs
 lcd_rs_direction
 ldexp
 ldiv
+led_green
+led_green_direction
+led_red
+led_red_direction
 log
 log10
 longint2double
@@ -1199,10 +1203,6 @@ t6963c_writecommand
 t6963c_writedata
 tan
 tanh
-test_keypad
-test_lcd
-test_servo
-test_ultrasonic
 time_datetoepoch
 time_epochtodate
 time_jd1970
@@ -1323,6 +1323,10 @@ trise2
 trise2_bit
 trmt
 trmt_bit
+turn_on_keypad
+turn_on_lcd
+turn_on_servo
+turn_on_ultrasonic
 tx8_9
 tx8_9_bit
 tx9
@@ -1349,6 +1353,7 @@ uart1_tx_idle
 uart1_write
 uart1_write_text
 uldiv
+updategarageleds
 vdelay_advanced_ms
 vdelay_ms
 w
