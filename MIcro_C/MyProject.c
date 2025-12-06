@@ -120,7 +120,23 @@ void Turn_On_LCD(){
     Delay_ms(1000);
 }
 
+// ===== Keypad Test Function =====
+void Turn_On_Keypad(){
+    char key;
+    LCD_Cmd(_LCD_CLEAR);
+    LCD_Out(1,1,"Press a Key:");
 
+    while(1){
+        key = Keypad_Key_Click();
+        if(key){
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"You Pressed:");
+            LCD_Chr(2,1, key + 48); // Display key value
+            Delay_ms(1000);
+            break;
+        }
+    }
+}
 
 // ===== Ultrasonic Test Function =====
 void Turn_On_Ultrasonic(){

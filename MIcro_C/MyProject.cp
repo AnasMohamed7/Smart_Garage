@@ -1,4 +1,4 @@
-#line 1 "E:/college _projects/Smart_Garage-main/MIcro_C/MyProject.c"
+#line 1 "C:/Users/Administrator/OneDrive/Desktop/Embedded Project/Smart_Garage/MIcro_C/MyProject.c"
 
 
 sbit LCD_RS at RD2_bit;
