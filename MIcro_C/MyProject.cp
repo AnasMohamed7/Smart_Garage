@@ -1,4 +1,5 @@
-#line 1 "C:/Users/Administrator/OneDrive/Desktop/Embedded Project/Smart_Garage/MIcro_C/MyProject.c"
+#line 1 "E:/college _projects/Smart_Garage-main/MIcro_C/MyProject.c"
+
 
 sbit LCD_RS at RD2_bit;
 sbit LCD_EN at RD3_bit;
@@ -6,6 +7,7 @@ sbit LCD_D4 at RD4_bit;
 sbit LCD_D5 at RD5_bit;
 sbit LCD_D6 at RD6_bit;
 sbit LCD_D7 at RD7_bit;
+
 
 sbit LCD_RS_Direction at TRISD2_bit;
 sbit LCD_EN_Direction at TRISD3_bit;
@@ -34,9 +36,14 @@ sbit SERVO at RC4_bit;
 sbit SERVO_Direction at TRISC4_bit;
 
 
+sbit LED_RED at RA1_bit;
+sbit LED_GREEN at RA0_bit;
+sbit LED_RED_Direction at TRISA1_bit;
+sbit LED_GREEN_Direction at TRISA0_bit;
+
+
 unsigned int getDistance1(){
  unsigned int t = 0;
-
  TRIG = 1;
  Delay_us(10);
  TRIG = 0;
@@ -55,10 +62,8 @@ unsigned int getDistance1(){
  return (t * 0.0343) / 2;
 }
 
-
 unsigned int getDistance2(){
  unsigned int t = 0;
-
  TRIG2 = 1;
  Delay_us(10);
  TRIG2 = 0;
@@ -78,6 +83,19 @@ unsigned int getDistance2(){
 }
 
 
+void UpdateGarageLEDs(unsigned int angle){
+ if(angle == 0){
+ LED_RED = 1;
+ LED_GREEN = 0;
+ }
+ else if(angle == 90){
+ LED_RED = 0;
+ LED_GREEN = 1;
+ }
+}
+
+
+
 void Servo_SetAngle(unsigned int angle){
  unsigned int pulse = 500 + (angle * 11);
  unsigned int i;
@@ -86,23 +104,25 @@ void Servo_SetAngle(unsigned int angle){
  for(i=0; i < pulse; i++) Delay_us(1);
  SERVO = 0;
  for(i=0; i < (20000 - pulse); i++) Delay_us(1);
+
+ UpdateGarageLEDs(angle);
 }
 
 
-void Test_Servo(){
+void Turn_On_Servo(){
  int i;
  for(i=0;i<40;i++) Servo_SetAngle(90);
 }
 
 
-void Test_LCD(){
+void Turn_On_LCD(){
  LCD_Cmd(_LCD_CLEAR);
  LCD_Out(1,1,"LCD Working OK");
  Delay_ms(1000);
 }
 
 
-void Test_Keypad(){
+void Turn_On_Keypad(){
  char key;
  LCD_Cmd(_LCD_CLEAR);
  LCD_Out(1,1,"Press a Key:");
@@ -120,7 +140,7 @@ void Test_Keypad(){
 }
 
 
-void Test_Ultrasonic(){
+void Turn_On_Ultrasonic(){
  unsigned int d1, d2;
  char text[7];
 
@@ -144,7 +164,87 @@ void Test_Ultrasonic(){
 }
 
 
+char Get_Key_Char(char key){
+ switch(key){
+ case 1: return '1';
+ case 2: return '2';
+ case 3: return '3';
+ case 4: return 'A';
+ case 5: return '4';
+ case 6: return '5';
+ case 7: return '6';
+ case 8: return 'B';
+ case 9: return '7';
+ case 10: return '8';
+ case 11: return '9';
+ case 12: return 'C';
+ case 13: return '*';
+ case 14: return '0';
+ case 15: return '#';
+ case 16: return 'D';
+ default: return 0;
+ }
+}
+
+
+void Check_Password(){
+ char password[5] = "1234";
+ char entered_pass[5];
+ char key;
+ int i = 0;
+ int attempts = 0;
+ int cnt = 0;
+ char cnt_txt[7];
+
+ while(1){
+ LCD_Cmd(_LCD_CLEAR);
+ LCD_Out(1,1,"Enter Password:");
+ i = 0;
+
+
+ while(i < 4){
+ key = 0;
+ while(key == 0) key = Keypad_Key_Click();
+
+ entered_pass[i] = Get_Key_Char(key);
+ LCD_Chr(2, i+1, '*');
+ i++;
+ Delay_ms(200);
+ }
+ entered_pass[4] = '\0';
+
+
+ if(strcmp(entered_pass, password) == 0){
+ LCD_Cmd(_LCD_CLEAR);
+ LCD_Out(1,1,"Correct!");
+ Delay_ms(1000);
+ Turn_On_Servo();
+ attempts = 0;
+ } else {
+ attempts++;
+ LCD_Cmd(_LCD_CLEAR);
+ LCD_Out(1,1,"Wrong Password");
+ Delay_ms(1000);
+
+ if(attempts >= 3){
+
+ for(cnt = 60; cnt > 0; cnt--){
+ LCD_Cmd(_LCD_CLEAR);
+ LCD_Out(1,1,"Wait: ");
+ IntToStr(cnt, cnt_txt);
+ LCD_Out(1,7,cnt_txt);
+ LCD_Out(1,13,"s");
+ Delay_ms(250);
+ }
+ attempts = 0;
+ }
+ }
+ }
+}
+
+
 void main(){
+ ADCON1 = 0x06;
 
 
  TRIG_Direction = 0;
@@ -152,18 +252,22 @@ void main(){
  TRIG2_Direction = 0;
  ECHO2_Direction = 1;
  SERVO_Direction = 0;
+ LED_RED_Direction = 0;
+ LED_GREEN_Direction = 0;
+
+ LED_RED = 1;
+ LED_GREEN = 0;
 
  LCD_Init();
  Keypad_Init();
 
- Test_LCD();
- Test_Keypad();
- Test_Ultrasonic();
- Test_Servo();
 
 
- LCD_Cmd(_LCD_CLEAR);
- LCD_Out(1,1,"All Parts OK ?");
+
+
+ Delay_ms(500);
+
+ Check_Password();
 
  while(1);
 }

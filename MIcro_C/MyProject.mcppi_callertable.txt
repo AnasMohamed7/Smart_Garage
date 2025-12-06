@@ -5,22 +5,7 @@ main
 		Delay_5500us
 		Delay_1us
 	Keypad_Init
-	Test_LCD
-		Lcd_Cmd
-			Delay_1us
-			Delay_5500us
-			Delay_50us
-		Lcd_Out
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
-			Lcd_Chr_CP
-				Lcd_Cmd
-					Delay_1us
-					Delay_5500us
-					Delay_50us
-	Test_Keypad
+	Check_Password
 		Lcd_Cmd
 			Delay_1us
 			Delay_5500us
@@ -39,77 +24,18 @@ main
 			Keypad_Key_Press
 				Delay_1us
 			Delay_10us
+		Get_Key_Char
 		Lcd_Chr
 			Lcd_Cmd
 				Delay_1us
 				Delay_5500us
 				Delay_50us
-	Test_Ultrasonic
-		Lcd_Cmd
-			Delay_1us
-			Delay_5500us
-			Delay_50us
-		Lcd_Out
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
-			Lcd_Chr_CP
-				Lcd_Cmd
-					Delay_1us
-					Delay_5500us
-					Delay_50us
-		getDistance1
-			Word2Double
-				NRM3232
-					RES032
-					SETFUN32
-					FIXSIGN32
-			Mul_32x32_FP
-				RES032
-				SETFOV32
-				SETFUN32
-			Div_32x32_FP
-				SETFDZ32
-				RES032
-				SETFOV32
-				SETFUN32
-			Double2Word
-				SETIOV3224
-		getDistance2
-			Word2Double
-				NRM3232
-					RES032
-					SETFUN32
-					FIXSIGN32
-			Mul_32x32_FP
-				RES032
-				SETFOV32
-				SETFUN32
-			Div_32x32_FP
-				SETFDZ32
-				RES032
-				SETFOV32
-				SETFUN32
-			Double2Word
-				SETIOV3224
-		WordToStr
-			Div_16x16_U
-	Test_Servo
-		Servo_SetAngle
-			Mul_16x16_U
-	Lcd_Cmd
-		Delay_1us
-		Delay_5500us
-		Delay_50us
-	Lcd_Out
-		Lcd_Cmd
-			Delay_1us
-			Delay_5500us
-			Delay_50us
-		Lcd_Chr_CP
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
+		strcmp
+		Turn_On_Servo
+			Servo_SetAngle
+				Mul_16x16_U
+				UpdateGarageLEDs
+		IntToStr
+			WordToStr
+				Div_16x16_U
 interrupt
