@@ -1,5 +1,4 @@
-#define _XTAL_FREQ 8000000 // 8MHz crystal frequency
-// LCD control and data pins
+// ================= LCD Pins =================
 sbit LCD_RS at RD2_bit;
 sbit LCD_EN at RD3_bit;
 sbit LCD_D4 at RD4_bit;
@@ -7,7 +6,6 @@ sbit LCD_D5 at RD5_bit;
 sbit LCD_D6 at RD6_bit;
 sbit LCD_D7 at RD7_bit;
 
-// LCD direction pins
 sbit LCD_RS_Direction at TRISD2_bit;
 sbit LCD_EN_Direction at TRISD3_bit;
 sbit LCD_D4_Direction at TRISD4_bit;
@@ -15,33 +13,46 @@ sbit LCD_D5_Direction at TRISD5_bit;
 sbit LCD_D6_Direction at TRISD6_bit;
 sbit LCD_D7_Direction at TRISD7_bit;
 
-// ===== Keypad Definitions =====
+// ================= Keypad =================
 char keypadport at PORTB;
 
-// ===== Ultrasonic Sensor 1 =====
+// ================= Ultrasonic Sensor 1 =================
 sbit TRIG  at RC0_bit;
 sbit ECHO  at RC1_bit;
 sbit TRIG_Direction  at TRISC0_bit;
 sbit ECHO_Direction  at TRISC1_bit;
 
-// ===== Ultrasonic Sensor 2 =====
+// ================= Ultrasonic Sensor 2 =================
 sbit TRIG2 at RC2_bit;
 sbit ECHO2 at RC3_bit;
 sbit TRIG2_Direction at TRISC2_bit;
 sbit ECHO2_Direction at TRISC3_bit;
 
-// ===== Servo Definitions =====
+// ================= Servo =================
 sbit SERVO at RC4_bit;
 sbit SERVO_Direction at TRISC4_bit;
 
-// ===== LED Definitions =====
-sbit LED_RED   at RA1_bit;
-sbit LED_GREEN at RA0_bit;
-sbit LED_RED_Direction   at TRISA1_bit;
-sbit LED_GREEN_Direction at TRISA0_bit;
+// ================= LEDs =================
+sbit LED_RED   at RE1_bit;
+sbit LED_GREEN at RE0_bit;
+sbit LED_RED_Direction   at TRISE1_bit;
+sbit LED_GREEN_Direction at TRISE0_bit;
 
-// ===== Function to read Ultrasonic sensor =====
-unsigned int getDistance1(){
+// ================= Button =================
+sbit InButton at RE2_bit;
+sbit InButton_Direction at TRISE2_bit;
+
+
+unsigned int MotorCurrentAngle = 0;
+char password[5] = "1234";
+char entered_pass[5];
+
+
+// =====================================================
+// ================ ULTRASONIC HELPER ==================
+// =====================================================
+
+float getDistance1(){   //outer ultrasonic
     unsigned int t = 0;
     TRIG = 1;
     Delay_us(10);
@@ -59,9 +70,8 @@ unsigned int getDistance1(){
     }
 
     return (t * 0.0343) / 2;
-}
-
-unsigned int getDistance2(){
+ }
+float getDistance2(){    //inner ultrasonic
     unsigned int t = 0;
     TRIG2 = 1;
     Delay_us(10);
@@ -79,121 +89,79 @@ unsigned int getDistance2(){
     }
 
     return (t * 0.0343) / 2;
-}
 
-// ===== Update Garage LEDs based on servo angle =====
+ }
+
+
+// =====================================================
+// ==================== SERVO + LEDs ====================
+// =====================================================
 void UpdateGarageLEDs(unsigned int angle){
-    if(angle == 0){
-        LED_RED = 1;
-        LED_GREEN = 0;
-    }
-    else if(angle == 90){
-        LED_RED = 0;
-        LED_GREEN = 1;
-    }
+    LED_RED   = (angle == 0);
+    LED_GREEN = (angle == 90);
 }
 
-// ===== Servo PWM Function =====
-// Sends pulse to servo to move to desired angle
+
 void Servo_SetAngle(unsigned int angle){
-    unsigned int pulse = 500 + (angle * 11);
-    unsigned int i;
-
-    SERVO = 1;
-    for(i=0; i < pulse; i++) Delay_us(1);
-    SERVO = 0;
-    for(i=0; i < (20000 - pulse); i++) Delay_us(1);
-
-    UpdateGarageLEDs(angle);
+    unsigned short i;
+    MotorCurrentAngle = angle;
+    
+     if(angle==0)
+     {
+        for(i = 0; i < 50; i++)
+          {
+             UpdateGarageLEDs(angle);
+             SERVO =1;
+             Delay_us(800); // pulse of 1500us
+             Servo = 0;
+             Delay_us(19200);
+          }
+     }
+          
+    if(angle == 90)
+      {
+        for(i = 0; i < 50; i++)
+          {
+            UpdateGarageLEDs(angle);
+            SERVO =1;
+            Delay_us(1500); // pulse of 800us
+            Servo = 0;
+            Delay_us(18500);
+           }
+      }
+      
+     
 }
 
-// ===== Test servo to open garage =====
-void Turn_On_Servo(){
-    int i;
-    for(i=0;i<40;i++) Servo_SetAngle(90);
-}
 
-// ===== LCD Test Function =====
-void Turn_On_LCD(){
-    LCD_Cmd(_LCD_CLEAR);
-    LCD_Out(1,1,"LCD Working OK");
-    Delay_ms(1000);
-}
+void Open_Door(){  Servo_SetAngle(90); }
 
-// ===== Keypad Test Function =====
-void Turn_On_Keypad(){
-    char key;
-    LCD_Cmd(_LCD_CLEAR);
-    LCD_Out(1,1,"Press a Key:");
+void Close_Door(){ Servo_SetAngle(0); }
 
-    while(1){
-        key = Keypad_Key_Click();
-        if(key){
-            LCD_Cmd(_LCD_CLEAR);
-            LCD_Out(1,1,"You Pressed:");
-            LCD_Chr(2,1, key + 48); // Display key value
-            Delay_ms(1000);
-            break;
-        }
-    }
-}
 
-// ===== Ultrasonic Test Function =====
-void Turn_On_Ultrasonic(){
-    unsigned int d1, d2;
-    char text[7];
+// =====================================================
+// =================== KEYPAD MAPPING ===================
+// =====================================================
+const char keyMap[17] = "123A456B789C*0#D";
 
-    LCD_Cmd(_LCD_CLEAR);
-    LCD_Out(1,1,"Testing Sensors");
-
-    Delay_ms(800);
-
-    d1 = getDistance1();     // Read sensor 1
-    d2 = getDistance2();   // Read sensor 2
-
-    WordToStr(d1, text);
-    LCD_Out(1,1,"S1:");
-    LCD_Out(1,4,text);
-
-    WordToStr(d2, text);
-    LCD_Out(2,1,"S2:");
-    LCD_Out(2,4,text);
-
-    Delay_ms(1200);
-}
-
-// ===== Keypad Map Function =====
 char Get_Key_Char(char key){
-    switch(key){
-        case 1:  return '1';
-        case 2:  return '2';
-        case 3:  return '3';
-        case 4:  return 'A';
-        case 5:  return '4';
-        case 6:  return '5';
-        case 7:  return '6';
-        case 8:  return 'B';
-        case 9:  return '7';
-        case 10: return '8';
-        case 11: return '9';
-        case 12: return 'C';
-        case 13: return '*';
-        case 14: return '0';
-        case 15: return '#';
-        case 16: return 'D';
-        default: return 0;
-    }
+    if(key >= 1 && key <= 16) return keyMap[key - 1];
+    return 0;
 }
 
-// ===== Password Check Function =====
-void Check_Password(){
-    char password[5] = "1234";
-    char entered_pass[5];
+
+// =====================================================
+// =================== PASSWORD CHECK ===================
+// =====================================================
+int Check_Password(){
     char key;
+    char k_char; // Temp variable to hold the converted char
     int i = 0;
     int attempts = 0;
     int cnt = 0;
-    char cnt_txt[7];
+
+    // Clear the array initially to be safe
+    memset(entered_pass, 0, 5);
 
     while(1){
         LCD_Cmd(_LCD_CLEAR);
@@ -205,72 +173,168 @@ void Check_Password(){
             key = 0;
             while(key == 0) key = Keypad_Key_Click();
 
-            entered_pass[i] = Get_Key_Char(key);
-            LCD_Chr(2, i+1, '*'); // Display asterisk
-            i++;
-            Delay_ms(200); // Debounce/Wait
+            k_char = Get_Key_Char(key);
+
+            //  Only accept the key if it is a valid character (not 0)
+            if (k_char != 0) {
+                entered_pass[i] = k_char;
+                LCD_Chr(2, i+1, '*');
+                i++;
+                Delay_ms(200);
+            }
         }
-        entered_pass[4] = '\0'; // Null terminate
+        entered_pass[4] = '\0'; // Null terminate safely
 
         // Check Password
         if(strcmp(entered_pass, password) == 0){
             LCD_Cmd(_LCD_CLEAR);
             LCD_Out(1,1,"Correct!");
-            Delay_ms(1000);
-            Turn_On_Servo();               // Open Garage
-            attempts = 0;                  // Reset attempts on success
+            return 0; // Success
         } else {
             attempts++;
             LCD_Cmd(_LCD_CLEAR);
             LCD_Out(1,1,"Wrong Password");
+            LED_RED = 1; // Explicitly ensure RED is ON
+            LED_GREEN = 0;
             Delay_ms(1000);
 
             if(attempts >= 3){
-                // 60-second lockout with countdown
+                LCD_Cmd(_LCD_CLEAR);
+                LCD_Out(1,1,"Wait: ");
+                LCD_Out(1,10,"s");
+
                 for(cnt = 60; cnt > 0; cnt--){
-                    LCD_Cmd(_LCD_CLEAR);
-                    LCD_Out(1,1,"Wait: ");
-                    IntToStr(cnt, cnt_txt);
-                    LCD_Out(1,7,cnt_txt);
-                    LCD_Out(1,13,"s");
-                    Delay_ms(250);
+                    // --- MANUALLY PRINT DIGITS (Saves Memory) ---
+                    LCD_Chr(1, 7, (cnt / 10) + 48);    //48 to convert number(1-9) into char("1"-"9")
+                    LCD_Chr(1, 8, (cnt % 10) + 48);
+                    Delay_ms(480);
                 }
-                attempts = 0; // Reset attempts after wait
+
+                attempts = 0;
             }
         }
     }
 }
 
-// ===== Main Function =====
-void main(){
-    ADCON1 = 0x06;   // Configure analog pins as digital = >without it leds not operate
 
-    // Set directions
+// =====================================================
+// ==================== MAIN LOGIC ======================
+// =====================================================
+void Operate_Garage (){
+    float d1, d2;
+    int DoorIsClosed;
+    unsigned int timer_counter; // Variable for the timeout logic
+
+    // Initialize door state
+    if(MotorCurrentAngle == 0) DoorIsClosed=1; else DoorIsClosed=0;
+
+    while(1){
+        d1 = getDistance1();
+        d2 = getDistance2();
+        Delay_ms(200); // Reduced delay for better responsiveness
+
+        // Update status based on current angle
+        if(MotorCurrentAngle == 0) DoorIsClosed=1; else DoorIsClosed=0;
+
+        // ================= ENTRY CASE =================
+        if(d1 <= 25 && DoorIsClosed ){
+            LCD_CMD(_LCD_TURN_ON);
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"....WELCOME.....");
+            Delay_ms(500);
+
+            Check_Password(); // Blocks here until correct password
+            delay_ms(500);
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"Opening Door...");
+            Open_Door();
+
+            // --- SAFETY LOGIC FOR ENTRY ---
+            timer_counter = 0;
+            while(getDistance2() > 15) {
+               Delay_ms(100);
+               timer_counter++;
+               if(timer_counter > 100) break; // 10 Sec Timeout waiting for entry
+            }
+
+
+            while(getDistance1() <= 25) {
+                Delay_ms(100);
+                // No timeout here strictly, or a very long one?
+                // Safety priority: checking if blocked.
+                // If blocked, wait.
+            }
+            // ---------------------------------------------------
+
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"Closing Door...");
+            Close_Door();
+            LCD_CMD(_LCD_TURN_OFF);
+            DoorIsClosed=1;
+        }
+
+        // ================= EXIT CASE =================
+        if(InButton==1 && DoorIsClosed){
+            LCD_Cmd(_LCD_TURN_ON);
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"Exit Request");
+            Delay_ms(300);
+
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"Opening Door...");
+            Open_Door();
+
+            // --- SAFETY LOGIC FOR EXIT ---
+            timer_counter = 0;
+            while(getDistance1() > 25) {
+                Delay_ms(100);
+                timer_counter++;
+                if(timer_counter > 100) break; // 10 Sec timeout
+            }
+
+            while(getDistance1() <= 25 || getDistance2() <= 15) {
+                Delay_ms(100);
+                // Wait until path is clear
+            }
+            // ---------------------------------------------------
+
+            LCD_Cmd(_LCD_CLEAR);
+            LCD_Out(1,1,"Closing Door...");
+            Close_Door();
+            LCD_CMD(_LCD_TURN_OFF);
+            DoorIsClosed=1;
+        }
+    }
+}
+
+
+
+// =====================================================
+// ======================== MAIN ========================
+// =====================================================
+void main(){
+    ADCON1 = 0x06;
+    SERVO_Direction = 0;
+    LED_RED_Direction = 0;
+    LED_GREEN_Direction = 0;
+    InButton_Direction = 1;
     TRIG_Direction  = 0;
     ECHO_Direction  = 1;
     TRIG2_Direction = 0;
     ECHO2_Direction = 1;
-    SERVO_Direction = 0;
-    LED_RED_Direction = 0;
-    LED_GREEN_Direction = 0;
 
-    LED_RED = 1;
+    LED_RED = 0;
     LED_GREEN = 0;
 
     LCD_Init();
+    LCD_cmd(_LCD_Cursor_off);
+
     Keypad_Init();
+    Operate_Garage();
 
-    // Turn_On_LCD();
-    // Turn_On_Keypad();
-    // Turn_On_Ultrasonic();
 
-    Delay_ms(500);
 
-    Check_Password(); // Start Password System
 
-    while(1);
-}
 
-// ===== Interrupt Handler (empty for now) =====
-void interrupt(){
+
 }
