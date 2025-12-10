@@ -339,3 +339,97 @@ For each message:
 3. Observe LCD response for each key
 
 **Expected Key Mapping** (see assets/keypad_mapping.png):
+
+[ 1 ][ 2 ][ 3 ][ A ]
+
+[ 4 ][ 5 ][ 6 ][ B ]
+
+[ 7 ][ 8 ][ 9 ][ C ]
+
+[ * ][ 0 ][ # ][ D ]
+
+**Expected Results**:
+- Each key press registers
+- Correct character appears on LCD (as *)
+- No double-registrations
+- Response time < 200ms
+
+**Pass Criteria**: All 16 keys functional
+
+**Status**: [ ] Pass  [ ] Fail
+
+**Non-Working Keys**: _____________________________
+
+---
+
+## Test Case 12: Power Cycle Recovery
+
+### TC-012
+**Objective**: Verify system initializes correctly after power loss
+
+**Test Steps**:
+1. Operate system normally
+2. Leave door in OPEN position
+3. Remove power
+4. Wait 10 seconds
+5. Restore power
+6. Observe initialization
+7. Test normal operation
+
+**Expected Results**:
+- Step 6: LCD initializes (may show garbage briefly)
+- Step 6: System goes to IDLE state
+- Step 6: Door position depends on servo (may drift)
+- Step 7: System operates normally regardless of door position
+
+**Pass Criteria**: Clean initialization, no errors
+
+**Status**: [ ] Pass  [ ] Fail
+
+---
+
+## Test Summary Template
+
+| TC# | Test Name | Status | Notes |
+|-----|-----------|--------|-------|
+| 001 | Normal Entry | [ ] | |
+| 002 | Wrong Password | [ ] | |
+| 003 | Lockout | [ ] | |
+| 004 | Exit No Password | [ ] | |
+| 005 | Obstacle Detection | [ ] | |
+| 006 | Entry Timeout | [ ] | |
+| 007 | Sensor Failure | [ ] | |
+| 008 | LCD Messages | [ ] | |
+| 009 | LED Indicators | [ ] | |
+| 010 | Servo Smooth | [ ] | |
+| 011 | Keypad | [ ] | |
+| 012 | Power Cycle | [ ] | |
+
+**Pass Rate**: _____ / 12 (___%)
+
+**Critical Issues**: ___________________________________
+
+**Tested By**: ______________ **Date**: __________
+
+---
+
+## Regression Testing Checklist
+
+**After any code changes, verify:**
+- [ ] TC-001 (Basic entry still works)
+- [ ] TC-005 (Safety features still work)
+- [ ] TC-009 (LEDs still correct)
+- [ ] TC-011 (Keypad still responsive)
+
+---
+
+## Performance Metrics
+
+| Metric | Target | Actual | Pass? |
+|--------|--------|--------|-------|
+| Entry cycle time | < 30s | ___s | [ ] |
+| Exit cycle time | < 20s | ___s | [ ] |
+| Lockout duration | 60s ± 2s | ___s | [ ] |
+| Timeout duration | 10s ± 1s | ___s | [ ] |
+| Sensor range | 2-400cm | ___cm | [ ] |
+| Detection threshold | 25cm ± 2cm | ___cm | [ ] |
